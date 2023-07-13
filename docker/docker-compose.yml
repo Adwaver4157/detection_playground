@@ -1,0 +1,45 @@
+version: "2.4"
+
+################################################################################
+
+services:
+  pytorch:
+    hostname: detection
+    # runtime: ${DOCKER_RUNTIME}
+    runtime: nvidia
+    privileged: true
+    environment:
+      # Display X Server GUIs.
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      # Configure the Nvidia Docker interface.
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - NVIDIA_REQUIRE_CUDA=cuda>=10.1
+      # - DOCKER_RUNTIME=${DOCKER_RUNTIME}
+      # Configure the PulseAudio interface.
+      - PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native
+    # image: registry.hsr.io/sdewg/hsr/hsr-devel:latest
+    # image: hsr-competition:noetic-latest #registry.hsr.io/sdewg/hsr/hsr-devel:latest
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+      # args:
+      #   - DOCKERFILE_COMMIT_SHORT_SHA
+    volumes:
+      # Map repository root for convenient access.
+      - ../:/root/workspace/
+      # # data
+      # - ${PWD}/data/data:/root/data/
+      # - ${HOME}/data/bagfiles:/root/bagfiles/
+      # - ${PWD}/data/ggcnn_weights_cornell:/root/HSR/external/ggcnn/ggcnn_weights_cornell
+      # - ${PWD}/data/detection:/root/HSR/catkin_ws/src/weblab_hsr_detection/scripts/checkpoint
+      # Grant display access to X Server.
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      # Grant audio access to PulseAudio.
+      - ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native
+      # device
+      - /dev/:/dev/
+    # Use 'network_mode: host' with the real robot or 'network_mode: bridge' for separated networks (multiple independent containers).
+    network_mode: host
+    command: /root/workspace/docker/initialize-docker-container.bash
